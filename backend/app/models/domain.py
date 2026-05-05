@@ -215,6 +215,48 @@ class PentestStepStatus(str, Enum):
     completed = "completed"
 
 
+class CVEFinding(BaseModel):
+    cve_id: str
+    description: str
+    cvss_score: float | None = None
+    severity: str | None = None
+    published: str | None = None
+
+
+class TopologyNodeType(str, Enum):
+    attacker = "attacker"
+    host = "host"
+    service = "service"
+    vulnerability = "vulnerability"
+    data = "data"
+
+
+class TopologyNodeStatus(str, Enum):
+    normal = "normal"
+    vulnerable = "vulnerable"
+    compromised = "compromised"
+
+
+class TopologyNode(BaseModel):
+    id: str
+    label: str
+    node_type: TopologyNodeType
+    status: TopologyNodeStatus = TopologyNodeStatus.normal
+    detail: str | None = None
+
+
+class TopologyEdge(BaseModel):
+    source: str
+    target: str
+    label: str = ""
+    edge_type: str = "normal"
+
+
+class AttackGraph(BaseModel):
+    nodes: list[TopologyNode] = Field(default_factory=list)
+    edges: list[TopologyEdge] = Field(default_factory=list)
+
+
 class PentestStep(BaseModel):
     index: int
     title: str
@@ -224,6 +266,7 @@ class PentestStep(BaseModel):
     status: PentestStepStatus = PentestStepStatus.pending
     user_output: str | None = None
     llm_analysis: str | None = None
+    cve_findings: list[CVEFinding] = Field(default_factory=list)
 
 
 class PentestSession(BaseModel):
@@ -237,3 +280,6 @@ class PentestSession(BaseModel):
     status: str = "planning"
     created_at: datetime
     latex_report: str | None = None
+    report_content: str | None = None
+    report_format: str | None = None
+    attack_graph: AttackGraph = Field(default_factory=AttackGraph)

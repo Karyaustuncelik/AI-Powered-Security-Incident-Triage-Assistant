@@ -459,7 +459,7 @@ function App() {
             <PentestWorkspace
               onStartSession={(req) => startPentestSession(req)}
               onSubmitStep={(id, idx, out) => submitPentestStep(id, idx, out)}
-              onGenerateReport={(id) => generatePentestReport(id)}
+              onGenerateReport={(id, fmt) => generatePentestReport(id, fmt)}
             />
           </div>
         )

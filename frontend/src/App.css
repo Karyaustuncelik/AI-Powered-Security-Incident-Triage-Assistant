@@ -849,3 +849,56 @@
   .pentest-form-row { grid-template-columns: 1fr; }
   .pentest-report-cta { flex-direction: column; align-items: flex-start; }
 }
+
+/* ── Attack Graph ─────────────────────────────────────────────────────────── */
+.pentest-graph-panel { padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+.pentest-graph-header { display: flex; align-items: center; justify-content: space-between; }
+.pentest-graph-hint { font-size: 0.74rem; color: #475569; font-style: italic; }
+.attack-graph-wrap { overflow-x: auto; }
+.attack-graph-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 32px; color: #334155; }
+.attack-graph-empty-icon { font-size: 2rem; opacity: 0.4; }
+.attack-graph-empty p { margin: 0; font-size: 0.85rem; }
+
+@keyframes dash-draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes node-appear {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse-ring {
+  0%, 100% { opacity: 0.15; }
+  50%       { opacity: 0.45; }
+}
+
+/* ── CVE Panel ────────────────────────────────────────────────────────────── */
+.pentest-cve-panel { display: flex; flex-direction: column; gap: 8px; }
+.pentest-cve-list { display: flex; flex-direction: column; gap: 6px; }
+.pentest-cve-row { border: 1px solid rgba(148,163,184,0.1); border-radius: 8px; padding: 10px 12px; background: rgba(0,0,0,0.3); display: grid; grid-template-columns: 1fr auto; gap: 4px; }
+.pentest-cve-left { display: flex; align-items: center; gap: 8px; }
+.pentest-cve-id { font-size: 0.8rem; color: #67e8f9; background: rgba(6,182,212,0.1); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+.pentest-cve-date { font-size: 0.74rem; color: #475569; }
+.pentest-cve-right { display: flex; align-items: center; gap: 6px; }
+.pentest-cve-severity { font-size: 0.72rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+.pentest-cve-sev-critical { background: rgba(239,68,68,0.15); color: #f87171; }
+.pentest-cve-sev-high { background: rgba(249,115,22,0.15); color: #fb923c; }
+.pentest-cve-sev-medium { background: rgba(234,179,8,0.15); color: #facc15; }
+.pentest-cve-sev-low { background: rgba(34,197,94,0.12); color: #4ade80; }
+.pentest-cve-score { font-size: 0.8rem; font-family: monospace; color: #94a3b8; }
+.pentest-cve-desc { margin: 0; font-size: 0.8rem; color: #64748b; line-height: 1.5; grid-column: 1 / -1; }
+
+/* ── Report format selector ───────────────────────────────────────────────── */
+.pentest-report-cta { flex-direction: column; align-items: flex-start; }
+.pentest-format-selector { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
+.pentest-format-btn { border: 1px solid rgba(148,163,184,0.15); border-radius: 10px; padding: 10px 14px; background: rgba(15,23,42,0.6); cursor: pointer; text-align: left; display: flex; flex-direction: column; gap: 3px; transition: border-color .15s, background .15s; }
+.pentest-format-btn:hover { border-color: rgba(56,189,248,0.3); background: rgba(8,47,73,0.2); }
+.pentest-format-btn.active { border-color: rgba(56,189,248,0.55); background: rgba(8,47,73,0.35); }
+.pentest-format-label { font-size: 0.9rem; font-weight: 600; color: #e2e8f0; }
+.pentest-format-desc { font-size: 0.76rem; color: #64748b; }
+
+/* HTML report preview sandboxed styles */
+.pentest-html-preview { border: 1px solid rgba(148,163,184,0.1); border-radius: 8px; overflow: hidden; max-height: 520px; overflow-y: auto; }
+
+@media (max-width: 600px) {
+  .pentest-format-selector { grid-template-columns: 1fr; }
+}
