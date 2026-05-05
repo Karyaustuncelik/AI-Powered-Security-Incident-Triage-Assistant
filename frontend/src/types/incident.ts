@@ -58,6 +58,8 @@ export type IncidentDetail = {
   severity: string
   priority: string
   suggested_action: string
+  source_event_count: number
+  source_event_samples: string[]
   review: IncidentReview | null
   llm_explanation: IncidentExplanation | null
 }
@@ -106,4 +108,34 @@ export type IncidentReviewUpdatePayload = {
   review_status: string
   assigned_analyst: string
   review_notes: string
+}
+
+export type UploadSession = {
+  upload_id: string
+  filename: string
+  parser_format: string
+  created_at: string
+  raw_event_count: number
+  normalized_event_count: number
+  incident_count: number
+}
+
+export type UploadedLogPayload = {
+  filename: string
+  content_base64: string
+}
+
+export type IncidentCopilotMessage = {
+  role: string
+  content: string
+}
+
+export type IncidentCopilotRequest = {
+  question: string
+  history: IncidentCopilotMessage[]
+}
+
+export type IncidentCopilotResponse = {
+  incident_id: string
+  answer: IncidentCopilotMessage
 }

@@ -5,6 +5,7 @@ import { formatLabel, formatTimestamp } from '../utils/format'
 type IncidentDetailPanelProps = {
   incident: IncidentDetail | null
   isLoading: boolean
+  showExplanationSection: boolean
   isGeneratingExplanation: boolean
   isSavingReview: boolean
   onGenerateExplanation: () => void
@@ -18,6 +19,7 @@ type IncidentDetailPanelProps = {
 export function IncidentDetailPanel({
   incident,
   isLoading,
+  showExplanationSection,
   isGeneratingExplanation,
   isSavingReview,
   onGenerateExplanation,
@@ -94,6 +96,10 @@ export function IncidentDetailPanel({
               <span className="detail-label">Source System</span>
               <p>{formatLabel(incident.source_system)}</p>
             </div>
+            <div className="fact-card">
+              <span className="detail-label">Source Events</span>
+              <p>{incident.source_event_count}</p>
+            </div>
           </div>
 
           <div>
@@ -137,6 +143,19 @@ export function IncidentDetailPanel({
             <span className="detail-label">Recommended Action</span>
             <p>{incident.suggested_action}</p>
           </div>
+
+          {incident.source_event_count > 0 ? (
+            <div>
+              <span className="detail-label">Correlated Source Evidence</span>
+              <div className="score-list">
+                {incident.source_event_samples.map((sample) => (
+                  <div key={sample} className="score-item source-sample">
+                    <p>{sample}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <div>
             <div className="inline-header">
@@ -202,36 +221,43 @@ export function IncidentDetailPanel({
             </div>
           </div>
 
-          <div>
-            <div className="inline-header">
-              <span className="detail-label">Explanation</span>
-              <button
-                className="generate-button"
-                disabled={isGeneratingExplanation || isSavingReview}
-                onClick={onGenerateExplanation}
-                type="button"
-              >
-                {isGeneratingExplanation ? 'Generating...' : 'Generate Explanation'}
-              </button>
-            </div>
+          {showExplanationSection ? (
+            <div>
+              <div className="inline-header">
+                <span className="detail-label">Explanation</span>
+                <button
+                  className="generate-button"
+                  disabled={isGeneratingExplanation || isSavingReview}
+                  onClick={onGenerateExplanation}
+                  type="button"
+                >
+                  {isGeneratingExplanation ? 'Generating...' : 'Generate Explanation'}
+                </button>
+              </div>
 
-            {incident.llm_explanation ? (
-              <div className="explanation-card">
-                <p className="explanation-title">{incident.llm_explanation.short_explanation}</p>
-                <p>{incident.llm_explanation.why_risky}</p>
-                <p>
-                  <strong>Next action:</strong> {incident.llm_explanation.recommended_action}
-                </p>
-                <span className="explanation-source">
-                  Source: {formatLabel(incident.llm_explanation.source)}
-                </span>
-              </div>
-            ) : (
-              <div className="empty-state">
-                Generate an explanation to see a human-readable incident summary.
-              </div>
-            )}
-          </div>
+              {incident.llm_explanation ? (
+                <div className="explanation-card">
+                  <p className="explanation-title">{incident.llm_explanation.short_explanation}</p>
+                  <p>{incident.llm_explanation.why_risky}</p>
+                  <p>
+                    <strong>Next action:</strong> {incident.llm_explanation.recommended_action}
+                  </p>
+                  <span className="explanation-source">
+                    Source: {formatLabel(incident.llm_explanation.source)}
+                  </span>
+                </div>
+              ) : (
+                <div className="empty-state">
+                  Generate an explanation to see a human-readable incident summary.
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="empty-state">
+              Uploaded log sessions use the copilot panel below for follow-up analysis instead of
+              the one-click explanation button.
+            </div>
+          )}
         </div>
       ) : null}
 

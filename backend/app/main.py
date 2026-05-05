@@ -13,6 +13,10 @@ from app.api.routes.incidents import router as incidents_router
 from app.api.routes.review import router as review_router
 # Dashboard istatistik route'ları.
 from app.api.routes.stats import router as stats_router
+from app.api.routes.uploads import router as uploads_router
+from app.api.routes.pentest import router as pentest_router
+# Red team / pentester streaming copilot route'ları.
+from app.api.routes.red_team import router as red_team_router
 # Ayarları tek yerden okumak için kendi yazdığımız fonksiyonu alıyoruz.
 from app.core.config import get_settings
 
@@ -56,10 +60,15 @@ def create_app() -> FastAPI:
     app.include_router(filters_router)
     # Incident route'larını da ekliyoruz.
     app.include_router(incidents_router)
+    # Upload edilen gerçek log route'larını da ekliyoruz.
+    app.include_router(uploads_router)
     # Analyst review route'larını da ekliyoruz.
     app.include_router(review_router)
     # Stats route'larını da ekliyoruz.
     app.include_router(stats_router)
+    # Red team copilot route'larını da ekliyoruz.
+    app.include_router(red_team_router)
+    app.include_router(pentest_router)
     # Fonksiyonun sonunda oluşturduğumuz uygulamayı geri veriyoruz.
     return app
 

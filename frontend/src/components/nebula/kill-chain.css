@@ -1,0 +1,366 @@
+/* ============================================
+   Kill Chain Builder — MITRE ATT&CK visual editor
+   ============================================ */
+
+.killchain-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeInUp 0.6s var(--ease-out-expo);
+}
+
+/* Header */
+.killchain-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+}
+
+.killchain-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.killchain-header-right {
+  display: flex;
+  gap: 8px;
+}
+
+.killchain-name-input {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 1.1rem;
+  font-weight: 700;
+  outline: none;
+  width: 260px;
+}
+
+.killchain-name-input::placeholder {
+  color: var(--text-muted);
+}
+
+.killchain-badge {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid var(--nebula-border);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Chain visualization */
+.killchain-visual {
+  padding: 20px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+}
+
+.killchain-flow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  min-width: min-content;
+}
+
+.killchain-flow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.killchain-flow-arrow {
+  display: flex;
+  align-items: center;
+  padding: 24px 4px 0;
+  opacity: 0.4;
+}
+
+.killchain-flow-card {
+  min-width: 180px;
+  max-width: 220px;
+  padding: 14px;
+  border: 1px solid;
+  border-radius: var(--radius-md);
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.killchain-flow-tactic {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.killchain-flow-code {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.killchain-flow-techs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.killchain-flow-tech {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: rgba(148, 163, 184, 0.06);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.killchain-flow-tech-id {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.killchain-flow-tech-remove {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.killchain-flow-tech-remove:hover {
+  color: var(--red-glow);
+}
+
+/* Editor */
+.killchain-editor {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 16px;
+  min-height: 400px;
+}
+
+.killchain-section-title {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* Tactics sidebar */
+.killchain-tactics {
+  padding: 20px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  overflow-y: auto;
+}
+
+.killchain-tactics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.killchain-tactic-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+}
+
+.killchain-tactic-btn:hover {
+  background: rgba(148, 163, 184, 0.06);
+}
+
+.killchain-tactic-btn.active {
+  background: color-mix(in srgb, var(--tactic-color) 8%, transparent);
+  border-color: color-mix(in srgb, var(--tactic-color) 25%, transparent);
+}
+
+.killchain-tactic-btn.in-chain .killchain-tactic-dot {
+  box-shadow: 0 0 8px var(--tactic-color);
+}
+
+.killchain-tactic-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tactic-color);
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.killchain-tactic-btn.active .killchain-tactic-dot {
+  opacity: 1;
+}
+
+.killchain-tactic-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.killchain-tactic-name {
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.killchain-tactic-code {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-muted);
+}
+
+.killchain-tactic-check {
+  margin-left: auto;
+  color: var(--green-glow);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* Techniques grid */
+.killchain-techniques {
+  padding: 20px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  overflow-y: auto;
+}
+
+.killchain-techniques-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.killchain-tech-card {
+  padding: 14px;
+  border: 1px solid var(--nebula-border);
+  border-radius: var(--radius-md);
+  background: rgba(15, 23, 42, 0.5);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  color: inherit;
+  transition: all var(--duration-fast) ease;
+}
+
+.killchain-tech-card:hover:not(:disabled) {
+  border-color: var(--tactic-color, var(--cyan-border));
+  background: rgba(15, 23, 42, 0.8);
+  transform: translateY(-2px);
+}
+
+.killchain-tech-card.added {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.killchain-tech-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.killchain-tech-id {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--tactic-color, var(--cyan-glow));
+}
+
+.killchain-tech-added-badge {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--green-glow);
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.killchain-tech-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.killchain-tech-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Empty state */
+.killchain-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 40px;
+}
+
+.killchain-empty p {
+  max-width: 300px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .killchain-editor {
+    grid-template-columns: 1fr;
+  }
+  .killchain-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .killchain-flow {
+    flex-direction: column;
+  }
+  .killchain-flow-arrow {
+    transform: rotate(90deg);
+    padding: 0 24px;
+  }
+}

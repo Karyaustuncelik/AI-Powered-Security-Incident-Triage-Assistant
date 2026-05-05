@@ -5,7 +5,12 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException
 
 from app.models.domain import IncidentEventType, PriorityLevel, SeverityLevel
-from app.models.schemas import IncidentDetailResponse, IncidentListItem
+from app.models.schemas import (
+    IncidentCopilotRequest,
+    IncidentCopilotResponse,
+    IncidentDetailResponse,
+    IncidentListItem,
+)
 from app.services.incidents_service import IncidentsService, to_detail_response, to_list_item
 
 
@@ -50,3 +55,14 @@ def get_incident(incident_id: str) -> IncidentDetailResponse:
     if incident is None:
         raise HTTPException(status_code=404, detail="Incident not found")
     return to_detail_response(incident)
+
+
+@router.post("/incidents/{incident_id}/chat", response_model=IncidentCopilotResponse)
+def chat_about_incident(
+    incident_id: str,
+    payload: IncidentCopilotRequest,
+) -> IncidentCopilotResponse:
+    response = incidents_service.chat_about_incident(incident_id, payload)
+    if response is None:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    return response

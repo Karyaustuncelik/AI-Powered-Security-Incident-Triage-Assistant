@@ -1,4 +1,4 @@
-# AI-Powered Security Incident Triage Assistant
+4# AI-Powered Security Incident Triage Assistant
 
 AI-Powered Security Incident Triage Assistant is a local-first security analysis web application that helps analysts review suspicious activity, prioritize incidents, and generate human-readable explanations from structured findings.
 

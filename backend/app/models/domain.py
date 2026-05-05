@@ -80,6 +80,15 @@ class ReviewStatus(str, Enum):
     dismissed = "dismissed"
 
 
+# Ham log satırı normalize edilince hangi güvenlik ailesine girdiğini tutar.
+class NormalizedEventKind(str, Enum):
+    authentication = "authentication"
+    privilege_change = "privilege_change"
+    api_activity = "api_activity"
+    admin_activity = "admin_activity"
+    generic_security = "generic_security"
+
+
 # Score'a etki eden tek bir katkıyı temsil eder.
 class ScoreContribution(BaseModel):
     # Hangi indicator bu puanı etkiledi?
@@ -115,6 +124,44 @@ class IncidentReview(BaseModel):
     assigned_analyst: str | None = None
     review_notes: str | None = None
     reviewed_at: datetime | None = None
+
+
+# Farkli log kaynaklarından gelen satırları ortak bir şekle çeviriyoruz.
+class NormalizedLogEvent(BaseModel):
+    event_id: str = Field(..., min_length=4)
+    timestamp: datetime
+    source_system: str = Field(..., min_length=2)
+    actor_user: str = Field(..., min_length=1)
+    affected_entity: str = Field(..., min_length=1)
+    source_ip: str | None = None
+    source_country: str | None = None
+    target_country: str | None = None
+    action: str = Field(..., min_length=1)
+    status: str = Field(default="unknown", min_length=1)
+    message: str = ""
+    event_kind: NormalizedEventKind = NormalizedEventKind.generic_security
+    is_admin_action: bool = False
+    is_privilege_change: bool = False
+    is_api_activity: bool = False
+    raw_data: dict[str, str] = Field(default_factory=dict)
+
+
+# Correlation aşaması tek bir incident üretirken onu destekleyen log örneklerini de taşır.
+class CorrelatedIncidentRecord(BaseModel):
+    incident: "RawIncidentRecord"
+    source_event_count: int = Field(default=0, ge=0)
+    source_event_samples: list[str] = Field(default_factory=list)
+
+
+# Kullanıcının yüklediği log dosyasına ait session özeti.
+class UploadSession(BaseModel):
+    upload_id: str = Field(..., min_length=4)
+    filename: str = Field(..., min_length=1)
+    parser_format: str = Field(..., min_length=1)
+    created_at: datetime
+    raw_event_count: int = Field(default=0, ge=0)
+    normalized_event_count: int = Field(default=0, ge=0)
+    correlated_incidents: list[CorrelatedIncidentRecord] = Field(default_factory=list)
 
 
 # Ham sayılara daha yakın olay kaydı.
@@ -156,5 +203,37 @@ class EnrichedIncident(BaseModel):
     severity: SeverityLevel
     priority: PriorityLevel
     suggested_action: str
+    source_event_count: int = Field(default=0, ge=0)
+    source_event_samples: list[str] = Field(default_factory=list)
     review: IncidentReview | None = None
     llm_explanation: IncidentExplanation | None = None
+
+
+class PentestStepStatus(str, Enum):
+    pending = "pending"
+    in_progress = "in_progress"
+    completed = "completed"
+
+
+class PentestStep(BaseModel):
+    index: int
+    title: str
+    description: str
+    commands: list[str] = Field(default_factory=list)
+    expected_outcome: str
+    status: PentestStepStatus = PentestStepStatus.pending
+    user_output: str | None = None
+    llm_analysis: str | None = None
+
+
+class PentestSession(BaseModel):
+    session_id: str
+    target: str
+    description: str
+    suspected_vuln: str | None = None
+    goal: str | None = None
+    steps: list[PentestStep] = Field(default_factory=list)
+    current_step_index: int = 0
+    status: str = "planning"
+    created_at: datetime
+    latex_report: str | None = None

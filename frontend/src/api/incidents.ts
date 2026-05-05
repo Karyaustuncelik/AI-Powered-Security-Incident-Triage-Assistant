@@ -1,7 +1,9 @@
 // Incident endpoint'leri için küçük yardımcı fonksiyonlar.
 
-import { apiGet } from './client'
+import { apiGet, apiPostJson } from './client'
 import type {
+  IncidentCopilotRequest,
+  IncidentCopilotResponse,
   IncidentDetail,
   IncidentFilters,
   IncidentListItem,
@@ -35,4 +37,15 @@ export function fetchIncidents(
 // Tek bir incident detayını al.
 export function fetchIncidentDetail(incidentId: string): Promise<IncidentDetail> {
   return apiGet<IncidentDetail>(`/incidents/${incidentId}`)
+}
+
+// Curated incident için copilot sohbeti başlat.
+export function chatAboutIncident(
+  incidentId: string,
+  payload: IncidentCopilotRequest,
+): Promise<IncidentCopilotResponse> {
+  return apiPostJson<IncidentCopilotResponse, IncidentCopilotRequest>(
+    `/incidents/${incidentId}/chat`,
+    payload,
+  )
 }

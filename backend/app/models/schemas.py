@@ -6,10 +6,12 @@ from pydantic import BaseModel, Field
 
 # Domain katmanındaki tipleri yeniden kullanıyoruz.
 from app.models.domain import (
+    CorrelatedIncidentRecord,
     IncidentCategory,
     IncidentEventType,
     IncidentExplanation,
     IncidentReview,
+    NormalizedLogEvent,
     IndicatorType,
     PriorityLevel,
     ReviewStatus,
@@ -48,6 +50,8 @@ class IncidentDetailResponse(BaseModel):
     severity: SeverityLevel
     priority: PriorityLevel
     suggested_action: str
+    source_event_count: int = Field(default=0, ge=0)
+    source_event_samples: list[str] = Field(default_factory=list)
     review: IncidentReview | None = None
     llm_explanation: IncidentExplanation | None = None
 
@@ -96,3 +100,63 @@ class IncidentReviewUpdateRequest(BaseModel):
 class IncidentReviewResponse(BaseModel):
     incident_id: str
     review: IncidentReview
+
+
+# Frontend dosya içeriğini base64 olarak yollayacak.
+class UploadLogRequest(BaseModel):
+    filename: str = Field(..., min_length=1)
+    content_base64: str = Field(..., min_length=1)
+
+
+# Upload başarılı olduktan sonra session özetini döneriz.
+class UploadSessionResponse(BaseModel):
+    upload_id: str
+    filename: str
+    parser_format: str
+    created_at: datetime
+    raw_event_count: int = Field(..., ge=0)
+    normalized_event_count: int = Field(..., ge=0)
+    incident_count: int = Field(..., ge=0)
+
+
+# Copilot chat geçmişindeki tek mesaj.
+class IncidentCopilotMessage(BaseModel):
+    role: str = Field(..., min_length=1)
+    content: str = Field(..., min_length=1)
+
+
+# Incident bağlamında sorulacak yeni soru.
+class IncidentCopilotRequest(BaseModel):
+    question: str = Field(..., min_length=2)
+    history: list[IncidentCopilotMessage] = Field(default_factory=list)
+
+
+# Copilot chat cevabı.
+class IncidentCopilotResponse(BaseModel):
+    incident_id: str
+    answer: IncidentCopilotMessage
+
+
+# Upload debug bilgisi ya da ileri kullanım için örnek normalize edilmiş olayları taşır.
+class UploadSessionDebugResponse(BaseModel):
+    session: UploadSessionResponse
+    normalized_event_samples: list[NormalizedLogEvent] = Field(default_factory=list)
+    correlated_incident_samples: list[CorrelatedIncidentRecord] = Field(default_factory=list)
+
+
+from app.models.domain import PentestSession  # noqa: E402
+
+
+class PentestStartRequest(BaseModel):
+    target: str = Field(..., min_length=3)
+    description: str = Field(..., min_length=10)
+    suspected_vuln: str | None = None
+    goal: str | None = None
+
+
+class PentestStepSubmitRequest(BaseModel):
+    user_output: str = Field(..., min_length=1)
+
+
+class PentestSessionResponse(BaseModel):
+    session: PentestSession

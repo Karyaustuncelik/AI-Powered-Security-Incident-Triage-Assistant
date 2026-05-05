@@ -11,4 +11,16 @@ backend/data/raw/
 
 frontend/node_modules/
 frontend/dist/
+frontend/tsconfig.app.tsbuildinfo
+frontend/tsconfig.node.tsbuildinfo
+
+# Claude Code internal files
+.claude/
+
+# User-uploaded log files (runtime data, not source)
+backend/data/uploads/
+
+# Archives and OS files
+*.zip
+Icon*
 

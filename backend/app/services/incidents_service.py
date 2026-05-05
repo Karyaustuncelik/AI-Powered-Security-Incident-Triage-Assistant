@@ -10,10 +10,13 @@ from app.models.domain import (
     SeverityLevel,
 )
 from app.models.schemas import (
+    IncidentCopilotRequest,
+    IncidentCopilotResponse,
     FiltersOptionsResponse,
     IncidentDetailResponse,
     IncidentListItem,
 )
+from app.services.copilot_service import get_incident_copilot_service
 from app.services.explanation_service import get_explanation_service
 from app.services.repository import get_incident_repository
 from app.services.review_service import get_review_service
@@ -53,6 +56,8 @@ def to_detail_response(incident: EnrichedIncident) -> IncidentDetailResponse:
         severity=incident.severity,
         priority=incident.priority,
         suggested_action=incident.suggested_action,
+        source_event_count=incident.source_event_count,
+        source_event_samples=incident.source_event_samples,
         review=incident.review,
         llm_explanation=incident.llm_explanation,
     )
@@ -61,6 +66,7 @@ def to_detail_response(incident: EnrichedIncident) -> IncidentDetailResponse:
 # Incident verisini yükleyip triage engine ile zenginleştiren servis.
 class IncidentsService:
     def __init__(self) -> None:
+        self.copilot_service = get_incident_copilot_service()
         self.explanation_service = get_explanation_service()
         self.repository = get_incident_repository()
         self.review_service = get_review_service()
@@ -151,6 +157,16 @@ class IncidentsService:
             return None
         incident = self.triage_engine.enrich_incident(raw_record)
         return self._attach_cached_explanation(incident)
+
+    def chat_about_incident(
+        self,
+        incident_id: str,
+        payload: IncidentCopilotRequest,
+    ) -> IncidentCopilotResponse | None:
+        incident = self.get_incident(incident_id)
+        if incident is None:
+            return None
+        return self.copilot_service.chat_about_incident(incident, payload)
 
     # Filtre dropdown'ları için seçenekleri çıkar.
     def get_filter_options(self) -> FiltersOptionsResponse:
