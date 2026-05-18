@@ -3,9 +3,10 @@ import { getActiveFilterEntries } from '../utils/format'
 
 type ActiveFilterChipsProps = {
   filters: IncidentFilters
+  onRemoveFilter?: (name: keyof IncidentFilters) => void
 }
 
-export function ActiveFilterChips({ filters }: ActiveFilterChipsProps) {
+export function ActiveFilterChips({ filters, onRemoveFilter }: ActiveFilterChipsProps) {
   const activeFilters = getActiveFilterEntries(filters)
 
   return (
@@ -24,6 +25,16 @@ export function ActiveFilterChips({ filters }: ActiveFilterChipsProps) {
           {activeFilters.map((entry) => (
             <span key={entry.key} className="filter-chip">
               <strong>{entry.label}:</strong> {entry.value}
+              {onRemoveFilter && (
+                <button
+                  className="chip-remove-btn"
+                  onClick={() => onRemoveFilter(entry.key)}
+                  type="button"
+                  aria-label={`Remove ${entry.label} filter`}
+                >
+                  &times;
+                </button>
+              )}
             </span>
           ))}
         </div>

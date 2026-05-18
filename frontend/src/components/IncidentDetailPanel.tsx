@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
-import type { IncidentDetail } from '../types/incident'
+import type { IncidentDetail, IncidentListItem, ResponsePlan } from '../types/incident'
+import type { Route } from './nebula/NavBar'
 import { formatLabel, formatTimestamp } from '../utils/format'
+import { SolveIncidentActions } from './SolveIncidentActions'
+import { ConfidenceGauge } from './ConfidenceGauge'
+import { IncidentTimeline } from './IncidentTimeline'
 
 type IncidentDetailPanelProps = {
   incident: IncidentDetail | null
@@ -14,6 +18,16 @@ type IncidentDetailPanelProps = {
     assigned_analyst: string
     review_notes: string
   }) => void
+  // SOAR additions
+  onNavigate: (route: Route) => void
+  onSetIncidentContext: (detail: IncidentDetail) => void
+  responsePlan: ResponsePlan | null
+  isGeneratingPlan: boolean
+  onGeneratePlan: () => void
+  onEscalate: () => void
+  relatedIncidents: IncidentListItem[]
+  isLoadingRelated: boolean
+  onSelectRelated: (id: string) => void
 }
 
 export function IncidentDetailPanel({
@@ -24,6 +38,15 @@ export function IncidentDetailPanel({
   isSavingReview,
   onGenerateExplanation,
   onSaveReview,
+  onNavigate,
+  onSetIncidentContext,
+  responsePlan,
+  isGeneratingPlan,
+  onGeneratePlan,
+  onEscalate,
+  relatedIncidents,
+  isLoadingRelated,
+  onSelectRelated,
 }: IncidentDetailPanelProps) {
   const [reviewStatus, setReviewStatus] = useState('open')
   const [assignedAnalyst, setAssignedAnalyst] = useState('')
@@ -65,6 +88,8 @@ export function IncidentDetailPanel({
               </span>
             </div>
           </div>
+
+          <ConfidenceGauge score={incident.score} severity={incident.severity} />
 
           <div>
             <span className="detail-label">Summary</span>
@@ -258,6 +283,47 @@ export function IncidentDetailPanel({
               the one-click explanation button.
             </div>
           )}
+
+          <SolveIncidentActions
+            incident={incident}
+            onNavigate={onNavigate}
+            onSetIncidentContext={onSetIncidentContext}
+            onEscalate={onEscalate}
+            isGeneratingPlan={isGeneratingPlan}
+            onGeneratePlan={onGeneratePlan}
+            responsePlan={responsePlan}
+          />
+
+          <IncidentTimeline incident={incident} />
+
+          <div className="related-incidents-section">
+            <span className="detail-label">Related Incidents</span>
+            {isLoadingRelated && <div className="empty-state">Loading related incidents...</div>}
+            {!isLoadingRelated && relatedIncidents.length === 0 && (
+              <div className="empty-state">No related incidents found.</div>
+            )}
+            {!isLoadingRelated && relatedIncidents.length > 0 && (
+              <div className="related-incidents-list">
+                {relatedIncidents.map((rel) => (
+                  <button
+                    key={rel.incident_id}
+                    className="related-incident-card"
+                    onClick={() => onSelectRelated(rel.incident_id)}
+                    type="button"
+                  >
+                    <div className="related-incident-header">
+                      <span className="related-incident-id">{rel.incident_id}</span>
+                      <span className={`severity ${rel.severity}`}>{formatLabel(rel.severity)}</span>
+                    </div>
+                    <div className="related-incident-meta">
+                      <span>{formatLabel(rel.event_type)}</span>
+                      <span>{rel.affected_entity}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       ) : null}
 

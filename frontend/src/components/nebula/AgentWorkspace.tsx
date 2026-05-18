@@ -11,6 +11,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { runAgent } from '../../api/agent'
 import type { AgentSSEEvent, AgentStep, SecurityFinding } from '../../types/agent'
+import { useIncidentContext } from '../../context/IncidentContext'
 
 // ── Severity badge ──────────────────────────────────────────────────────────
 
@@ -130,8 +131,18 @@ function SummaryCard({ summary, findings }: {
 // ── Main workspace ──────────────────────────────────────────────────────────
 
 export function AgentWorkspace() {
+  const { activeIncident, clearIncident } = useIncidentContext()
   const [target, setTarget] = useState('')
   const [goal, setGoal] = useState('')
+
+  // Pre-fill from incident context when navigating from "Solve Incident"
+  useEffect(() => {
+    if (activeIncident) {
+      setTarget(activeIncident.affectedEntity)
+      setGoal(`Investigate incident ${activeIncident.incidentId}: ${activeIncident.summary}`)
+      clearIncident()
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const [isRunning, setIsRunning] = useState(false)
   const [steps, setSteps] = useState<AgentStep[]>([])
   const [findings, setFindings] = useState<SecurityFinding[]>([])

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { generateExplanation } from './api/explain'
 import { fetchFilterOptions } from './api/filters'
-import { chatAboutIncident, fetchIncidentDetail, fetchIncidents } from './api/incidents'
+import { chatAboutIncident, fetchIncidentDetail, fetchIncidents, fetchRelatedIncidents, generateResponsePlan } from './api/incidents'
 import { saveIncidentReview } from './api/review'
 import { fetchStats } from './api/stats'
 import {
@@ -32,12 +32,14 @@ import { ThreatIntel } from './components/nebula/ThreatIntel'
 import { DetectionPanel } from './components/DetectionPanel'
 import { PentestWorkspace } from './components/PentestWorkspace'
 import { AgentWorkspace } from './components/nebula/AgentWorkspace'
+import { IncidentContextProvider, useIncidentContext } from './context/IncidentContext'
 import type {
   FilterOptionsResponse,
   IncidentCopilotMessage,
   IncidentDetail,
   IncidentFilters,
   IncidentListItem,
+  ResponsePlan,
   StatsResponse,
   UploadSession,
 } from './types/incident'
@@ -100,8 +102,9 @@ function useHashRoute(): [Route, (r: Route) => void] {
   return [route, navigate]
 }
 
-function App() {
+function AppInner() {
   const [route, navigate] = useHashRoute()
+  const { setFromDetail } = useIncidentContext()
   const [activeUploadSession, setActiveUploadSession] = useState<UploadSession | null>(null)
   const [incidents, setIncidents] = useState<IncidentListItem[]>([])
   const [stats, setStats] = useState<StatsResponse | null>(null)
@@ -118,6 +121,12 @@ function App() {
   const [copilotMessages, setCopilotMessages] = useState<IncidentCopilotMessage[]>([])
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [refreshVersion, setRefreshVersion] = useState(0)
+
+  // SOAR additions
+  const [responsePlan, setResponsePlan] = useState<ResponsePlan | null>(null)
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false)
+  const [relatedIncidents, setRelatedIncidents] = useState<IncidentListItem[]>([])
+  const [isLoadingRelated, setIsLoadingRelated] = useState(false)
 
   // Only load dashboard data when on dashboard route
   const isDashboardActive = route === '/dashboard'
@@ -334,6 +343,61 @@ function App() {
     }
   }
 
+  // Load related incidents when selected incident changes
+  useEffect(() => {
+    if (!selectedIncidentId || !isDashboardActive) {
+      setRelatedIncidents([])
+      return
+    }
+    let cancelled = false
+    async function load() {
+      try {
+        setIsLoadingRelated(true)
+        const related = await fetchRelatedIncidents(selectedIncidentId!)
+        if (!cancelled) setRelatedIncidents(related)
+      } catch {
+        if (!cancelled) setRelatedIncidents([])
+      } finally {
+        if (!cancelled) setIsLoadingRelated(false)
+      }
+    }
+    void load()
+    return () => { cancelled = true }
+  }, [selectedIncidentId, isDashboardActive])
+
+  // Reset response plan when incident changes
+  useEffect(() => {
+    setResponsePlan(null)
+    setIsGeneratingPlan(false)
+  }, [selectedIncidentId])
+
+  async function handleGenerateResponsePlan() {
+    if (!selectedIncidentId) return
+    try {
+      setIsGeneratingPlan(true)
+      const plan = await generateResponsePlan(selectedIncidentId)
+      setResponsePlan(plan)
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Response plan oluşturulamadı.')
+    } finally {
+      setIsGeneratingPlan(false)
+    }
+  }
+
+  function handleEscalate() {
+    if (!selectedIncident) return
+    // Set review to escalated and save
+    void handleSaveReview({
+      review_status: 'escalated',
+      assigned_analyst: selectedIncident.review?.assigned_analyst ?? '',
+      review_notes: `Escalated from incident response actions at ${new Date().toISOString()}`,
+    })
+  }
+
+  function removeFilter(name: keyof IncidentFilters) {
+    setFilters((currentFilters) => ({ ...currentFilters, [name]: '' }))
+  }
+
   // Render pages
   const renderPage = () => {
     switch (route) {
@@ -372,11 +436,12 @@ function App() {
             <FilterBar
               filterOptions={filterOptions}
               filters={filters}
+              incidents={incidents}
               onFilterChange={updateFilter}
               onReset={resetFilters}
             />
 
-            <ActiveFilterChips filters={filters} />
+            <ActiveFilterChips filters={filters} onRemoveFilter={removeFilter} />
 
             <section className="insights-grid">
               <DistributionCard
@@ -416,6 +481,15 @@ function App() {
                   onGenerateExplanation={handleGenerateExplanation}
                   onSaveReview={handleSaveReview}
                   showExplanationSection={!isUploadMode}
+                  onNavigate={navigate}
+                  onSetIncidentContext={setFromDetail}
+                  responsePlan={responsePlan}
+                  isGeneratingPlan={isGeneratingPlan}
+                  onGeneratePlan={handleGenerateResponsePlan}
+                  onEscalate={handleEscalate}
+                  relatedIncidents={relatedIncidents}
+                  isLoadingRelated={isLoadingRelated}
+                  onSelectRelated={setSelectedIncidentId}
                 />
                 <IncidentCopilotPanel
                   incident={selectedIncident}
@@ -548,6 +622,14 @@ function App() {
       <NavBar active={route} onNavigate={navigate} />
       {renderPage()}
     </main>
+  )
+}
+
+function App() {
+  return (
+    <IncidentContextProvider>
+      <AppInner />
+    </IncidentContextProvider>
   )
 }
 

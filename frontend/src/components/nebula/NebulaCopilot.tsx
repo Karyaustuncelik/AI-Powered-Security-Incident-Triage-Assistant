@@ -2,6 +2,8 @@
 // Retro-futuristic hacker terminal with streaming SSE, mode selection, and typing effects.
 
 import { useEffect, useRef, useState } from "react";
+import { useIncidentContext } from "../../context/IncidentContext";
+import { API_BASE_URL } from "../../api/client";
 
 type RedTeamMode = "recon" | "exploit" | "attack_chain" | "report" | "general";
 
@@ -53,9 +55,8 @@ const QUICK_PROMPTS: Record<RedTeamMode, string[]> = {
   ],
 };
 
-const API_BASE = "http://127.0.0.1:8000";
-
 export function NebulaCopilot() {
+  const { activeIncident, clearIncident } = useIncidentContext();
   const [mode, setMode] = useState<RedTeamMode>("general");
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -66,6 +67,22 @@ export function NebulaCopilot() {
   ]);
   const [input, setInput] = useState("");
   const [target, setTarget] = useState("");
+
+  // Pre-fill from incident context when navigating from "Solve Incident"
+  useEffect(() => {
+    if (activeIncident) {
+      setTarget(activeIncident.affectedEntity);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "system",
+          content: `Incident context loaded: ${activeIncident.incidentId}\nSeverity: ${activeIncident.severity.toUpperCase()} | Priority: ${activeIncident.priority}\nEntity: ${activeIncident.affectedEntity} | Actor: ${activeIncident.actorUser}\nEvent: ${activeIncident.eventType}\nSummary: ${activeIncident.summary}`,
+          timestamp: Date.now(),
+        },
+      ]);
+      clearIncident();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingText, setStreamingText] = useState("");
   const [showModePanel, setShowModePanel] = useState(false);
@@ -99,7 +116,7 @@ export function NebulaCopilot() {
         .slice(-10)
         .map((m) => ({ role: m.role, content: m.content }));
 
-      const response = await fetch(`${API_BASE}/red-team/stream`, {
+      const response = await fetch(`${API_BASE_URL}/red-team/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

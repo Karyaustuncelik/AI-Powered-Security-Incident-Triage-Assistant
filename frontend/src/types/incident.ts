@@ -139,3 +139,20 @@ export type IncidentCopilotResponse = {
   incident_id: string
   answer: IncidentCopilotMessage
 }
+
+// Response plan types for the Solve Incident workflow.
+export type ResponsePlanStep = {
+  phase: string
+  title: string
+  description: string
+  priority: string
+  estimated_time: string
+}
+
+export type ResponsePlan = {
+  incident_id: string
+  severity: string
+  event_type: string
+  generated_at: string
+  phases: ResponsePlanStep[]
+}

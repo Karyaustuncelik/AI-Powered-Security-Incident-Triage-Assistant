@@ -7,6 +7,7 @@ import type {
   IncidentDetail,
   IncidentFilters,
   IncidentListItem,
+  ResponsePlan,
 } from '../types/incident'
 
 // Filtre nesnesini query string'e çevir.
@@ -37,6 +38,16 @@ export function fetchIncidents(
 // Tek bir incident detayını al.
 export function fetchIncidentDetail(incidentId: string): Promise<IncidentDetail> {
   return apiGet<IncidentDetail>(`/incidents/${incidentId}`)
+}
+
+// Benzer incident'ları al (aynı actor veya entity).
+export function fetchRelatedIncidents(incidentId: string): Promise<IncidentListItem[]> {
+  return apiGet<IncidentListItem[]>(`/incidents/${incidentId}/related`)
+}
+
+// Deterministik response plan üret.
+export function generateResponsePlan(incidentId: string): Promise<ResponsePlan> {
+  return apiGet<ResponsePlan>(`/incidents/${incidentId}/response-plan`)
 }
 
 // Curated incident için copilot sohbeti başlat.

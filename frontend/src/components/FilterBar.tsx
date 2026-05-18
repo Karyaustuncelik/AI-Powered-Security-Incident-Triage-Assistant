@@ -1,9 +1,25 @@
-import type { FilterOptionsResponse, IncidentFilters } from '../types/incident'
+import { useMemo } from 'react'
+import type { FilterOptionsResponse, IncidentFilters, IncidentListItem } from '../types/incident'
 import { formatLabel } from '../utils/format'
+
+// Severity → valid priority mappings (based on triage engine logic)
+const SEVERITY_PRIORITY_MAP: Record<string, string[]> = {
+  critical: ['immediate_attention'],
+  high: ['immediate_attention', 'investigate_soon'],
+  medium: ['investigate_soon', 'investigate_later'],
+  low: ['investigate_later'],
+}
+
+const PRIORITY_SEVERITY_MAP: Record<string, string[]> = {
+  immediate_attention: ['critical', 'high'],
+  investigate_soon: ['high', 'medium'],
+  investigate_later: ['medium', 'low'],
+}
 
 type FilterBarProps = {
   filters: IncidentFilters
   filterOptions: FilterOptionsResponse | null
+  incidents?: IncidentListItem[]
   onFilterChange: (name: keyof IncidentFilters, value: string) => void
   onReset: () => void
 }
@@ -11,9 +27,31 @@ type FilterBarProps = {
 export function FilterBar({
   filters,
   filterOptions,
+  incidents,
   onFilterChange,
   onReset,
 }: FilterBarProps) {
+  // Compute which priority/severity options are valid given current selection
+  const validPriorities = useMemo(() => {
+    if (filters.severity) {
+      return new Set(SEVERITY_PRIORITY_MAP[filters.severity] ?? [])
+    }
+    if (incidents?.length) {
+      return new Set(incidents.map(i => i.priority))
+    }
+    return null // show all
+  }, [filters.severity, incidents])
+
+  const validSeverities = useMemo(() => {
+    if (filters.priority) {
+      return new Set(PRIORITY_SEVERITY_MAP[filters.priority] ?? [])
+    }
+    if (incidents?.length) {
+      return new Set(incidents.map(i => i.severity))
+    }
+    return null
+  }, [filters.priority, incidents])
+
   return (
     <section className="panel filter-panel">
       <div className="panel-header">
@@ -44,8 +82,12 @@ export function FilterBar({
           >
             <option value="">All severities</option>
             {(filterOptions?.severity_options ?? []).map((option) => (
-              <option key={option} value={option}>
-                {formatLabel(option)}
+              <option
+                key={option}
+                value={option}
+                disabled={validSeverities !== null && !validSeverities.has(option)}
+              >
+                {formatLabel(option)}{validSeverities !== null && !validSeverities.has(option) ? ' (0 results)' : ''}
               </option>
             ))}
           </select>
@@ -60,8 +102,12 @@ export function FilterBar({
           >
             <option value="">All priorities</option>
             {(filterOptions?.priority_options ?? []).map((option) => (
-              <option key={option} value={option}>
-                {formatLabel(option)}
+              <option
+                key={option}
+                value={option}
+                disabled={validPriorities !== null && !validPriorities.has(option)}
+              >
+                {formatLabel(option)}{validPriorities !== null && !validPriorities.has(option) ? ' (0 results)' : ''}
               </option>
             ))}
           </select>
