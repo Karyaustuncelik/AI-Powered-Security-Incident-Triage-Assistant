@@ -1,6 +1,7 @@
 # Bu dosya incident listeleme ve detay alma işini tek yerde toplar.
 
 from datetime import datetime
+from functools import lru_cache
 
 from app.models.domain import (
     EnrichedIncident,
@@ -158,6 +159,14 @@ class IncidentsService:
         incident = self.triage_engine.enrich_incident(raw_record)
         return self._attach_cached_explanation(incident)
 
+    # Return enriched incident (used by detection engineering routes).
+    def get_enriched_incident(self, incident_id: str) -> EnrichedIncident | None:
+        return self.get_incident(incident_id)
+
+    # Return the raw (unenriched) record for anomaly analysis.
+    def get_raw_record(self, incident_id: str):
+        return self.repository.get_incident(incident_id)
+
     def chat_about_incident(
         self,
         incident_id: str,
@@ -194,3 +203,8 @@ class IncidentsService:
             incident.llm_explanation = cached_explanation
         incident.review = self.review_service.get_review(incident.incident_id)
         return incident
+
+
+@lru_cache
+def get_incidents_service() -> IncidentsService:
+    return IncidentsService()

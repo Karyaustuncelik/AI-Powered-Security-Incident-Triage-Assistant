@@ -17,6 +17,10 @@ from app.api.routes.uploads import router as uploads_router
 from app.api.routes.pentest import router as pentest_router
 # Red team / pentester streaming copilot route'ları.
 from app.api.routes.red_team import router as red_team_router
+# AI Security Agent route'ları.
+from app.api.routes.agent import router as agent_router
+# Detection engineering (SIGMA, compliance, anomaly) route'ları.
+from app.api.routes.sigma import router as sigma_router
 # Ayarları tek yerden okumak için kendi yazdığımız fonksiyonu alıyoruz.
 from app.core.config import get_settings
 
@@ -69,6 +73,10 @@ def create_app() -> FastAPI:
     # Red team copilot route'larını da ekliyoruz.
     app.include_router(red_team_router)
     app.include_router(pentest_router)
+    # AI Security Agent route'larını da ekliyoruz.
+    app.include_router(agent_router)
+    # Detection engineering route'larını da ekliyoruz.
+    app.include_router(sigma_router)
     # Fonksiyonun sonunda oluşturduğumuz uygulamayı geri veriyoruz.
     return app
 

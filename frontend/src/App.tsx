@@ -29,7 +29,9 @@ import { NavBar, type Route } from './components/nebula/NavBar'
 import { NebulaCopilot } from './components/nebula/NebulaCopilot'
 import { Starfield } from './components/nebula/Starfield'
 import { ThreatIntel } from './components/nebula/ThreatIntel'
+import { DetectionPanel } from './components/DetectionPanel'
 import { PentestWorkspace } from './components/PentestWorkspace'
+import { AgentWorkspace } from './components/nebula/AgentWorkspace'
 import type {
   FilterOptionsResponse,
   IncidentCopilotMessage,
@@ -47,6 +49,7 @@ import './components/nebula/nebula-copilot.css'
 import './components/nebula/attack-map.css'
 import './components/nebula/kill-chain.css'
 import './components/nebula/threat-intel.css'
+import './components/nebula/agent-workspace.css'
 import './App.css'
 
 const EMPTY_FILTERS: IncidentFilters = {
@@ -76,7 +79,7 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 function useHashRoute(): [Route, (r: Route) => void] {
   const getRoute = (): Route => {
     const hash = window.location.hash.replace('#', '') || '/'
-    const valid: Route[] = ['/', '/dashboard', '/sirius', '/attack-map', '/kill-chain', '/threat-intel', '/pentest']
+    const valid: Route[] = ['/', '/dashboard', '/sirius', '/attack-map', '/kill-chain', '/threat-intel', '/pentest', '/agent']
     return valid.includes(hash as Route) ? (hash as Route) : '/'
   }
 
@@ -423,6 +426,8 @@ function App() {
                 />
               </div>
             </section>
+
+            <DetectionPanel incidentId={selectedIncidentId} />
           </div>
         )
 
@@ -512,6 +517,23 @@ function App() {
               </p>
             </section>
             <ThreatIntel />
+          </div>
+        )
+
+      case '/agent':
+        return (
+          <div className="dashboard-page page-enter">
+            <section className="hero">
+              <p className="eyebrow">SIRIUS AI · Autonomous Agent</p>
+              <h1>
+                Security <span className="text-gradient">Agent.</span>
+              </h1>
+              <p className="hero-copy">
+                Autonomous AI agent with 8 security tools. Uses ReAct reasoning to probe targets,
+                analyze headers, enumerate subdomains, search CVEs, and deliver a comprehensive assessment.
+              </p>
+            </section>
+            <AgentWorkspace />
           </div>
         )
 

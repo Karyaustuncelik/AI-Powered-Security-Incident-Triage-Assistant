@@ -65,15 +65,24 @@ export async function apiPostJson<T, B>(path: string, body: B): Promise<T> {
 export async function apiPut<T, B>(path: string, body: B): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-
-  if (!response.ok) {
-    throw await buildApiError(response)
-  }
-
+  if (!response.ok) throw await buildApiError(response)
   return (await response.json()) as T
+}
+
+export async function apiPatch<T, B>(path: string, body: B): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!response.ok) throw await buildApiError(response)
+  return (await response.json()) as T
+}
+
+export async function apiDelete(path: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}${path}`, { method: 'DELETE' })
+  if (!response.ok) throw await buildApiError(response)
 }

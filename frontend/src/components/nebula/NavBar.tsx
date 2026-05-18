@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-type Route = "/" | "/dashboard" | "/sirius" | "/attack-map" | "/kill-chain" | "/threat-intel" | "/pentest";
+type Route = "/" | "/dashboard" | "/sirius" | "/attack-map" | "/kill-chain" | "/threat-intel" | "/pentest" | "/agent";
 
 type Props = {
   active: Route;
@@ -17,6 +17,7 @@ const NAV_ITEMS: { route: Route; label: string; icon: string }[] = [
   { route: "/kill-chain", label: "Kill Chain", icon: "05" },
   { route: "/threat-intel", label: "Threat Intel", icon: "06" },
   { route: "/pentest", label: "Pentest", icon: "07" },
+  { route: "/agent", label: "AI Agent", icon: "08" },
 ];
 
 export function NavBar({ active, onNavigate }: Props) {

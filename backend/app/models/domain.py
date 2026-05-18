@@ -282,4 +282,5 @@ class PentestSession(BaseModel):
     latex_report: str | None = None
     report_content: str | None = None
     report_format: str | None = None
+    report_draft: str | None = None
     attack_graph: AttackGraph = Field(default_factory=AttackGraph)
